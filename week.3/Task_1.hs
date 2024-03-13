@@ -21,5 +21,5 @@ main = do
     print $ removeFirstOccurrence 1212 1 == 122  
     print $ removeFirstOccurrence 1212 2 == 121
     print $ removeFirstOccurrence (removeFirstOccurrence 1212 1) 1 == 22
-    print $ removeFirstOccurrence 14782 7 == 1482
+    print $ removeFirstOccurrence 14782 7 == 1482 -- mytest
     
