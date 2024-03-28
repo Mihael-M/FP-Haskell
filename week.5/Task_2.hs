@@ -4,8 +4,10 @@ isPalindrome :: Int -> Bool
 isPalindrome n = (read $ reverse $ show n) == n
 
 getPalindromes :: Int -> Int 
-getPalindromes n = (minimum $ filter (\ x -> mod n x == 0 && isPalindrome x) [2 .. n]) + (maximum $ filter (\ x -> mod n x == 0 && isPalindrome x) [2 .. n]) 
+getPalindromes n = (minimum $ findPalindrome n ) + (maximum $ findPalindrome n ) 
 
+findPalindrome :: Int -> [Int]
+findPalindrome n = filter (\ x -> mod n x == 0 && isPalindrome x) [2 .. n]
 main :: IO()
 main = do
     print $ getPalindromes 132465 == 8

@@ -1,7 +1,7 @@
 pairCompose :: [Int -> Int] -> (Int -> Int)
 pairCompose [] = id 
 pairCompose [f] = f 
-pairCompose (f1:f2:xs) = \x -> f1 (f2 x) + pairCompose xs x
+pairCompose (f1:f2:xs) = (\x -> f1 (f2 x) + pairCompose xs x)
 
 
 main :: IO()

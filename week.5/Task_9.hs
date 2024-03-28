@@ -1,16 +1,16 @@
-dotProduct :: Vector -> Vector -> Int
+type Vector a = (a, a, a)
+
+dotProduct :: (Num a) => Vector a -> Vector a -> a
 dotProduct (x, y, z) (t, n, k) = x * t + y * n + z * k
 
-crossProduct :: Vector -> Vector -> Vector
+crossProduct :: (Num a) => Vector a -> Vector a -> Vector a
 crossProduct (x1, y1, z1) (x2, y2, z2) = ( y1 * z2 - z1 * y2
                                          , z1 * x2 - x1 * z2
                                          , x1 * y2 - y1 * x2
                                          )
 
-magnitude :: Vector -> Double
-magnitude (x, y, z) = sqrt (fromIntegral (x * x + y * y + z * z))
-
-type Vector = (Int, Int, Int)
+magnitude :: (Floating a) => Vector a -> a
+magnitude (x, y, z) = sqrt $ x * x + y * y + z * z
 
 main :: IO()
 main = do
