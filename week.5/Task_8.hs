@@ -1,6 +1,8 @@
+import Data.List
+
 repeater :: String -> (Int -> String -> String)
-repeater str 1 glue = str
-repeater str count glue = (str ++ glue) ++ repeater str (count-1) glue
+repeater str = (\count glue -> concat (replicate (count - 1) (str ++ glue)) ++ str)
+
 
 main :: IO()
 main = do
