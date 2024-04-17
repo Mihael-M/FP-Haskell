@@ -11,7 +11,7 @@ area :: Floating a => Shape a -> a
 area (Circle r) = pi * r * r
 area (Rectangle w h) = w * h
 area (Cylinder r h) = 2 * pi * r * h + 2 * pi * r * r
-area (Triangle a b c) = sqrt (s * (s - a) * (s - b) * (s - c))
+area (Triangle a b c) = sqrt $ s * (s - a) * (s - b) * (s - c)
  where 
      s = (a + b + c) / 2  
 

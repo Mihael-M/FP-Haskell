@@ -1,7 +1,8 @@
+
 type Node = (Int, Int, Int)
 
 listLeaves :: [Node] -> [Int]
-listLeaves tree = filter (\x -> not (elem x parents)) child
+listLeaves tree = filter (\x -> notElem x parents) child
  where
     parents = map (\(x, _, _) -> x) tree
     child = concatMap (\(_, y, z) -> [y, z]) tree

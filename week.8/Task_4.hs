@@ -11,10 +11,10 @@ area (Triangle a b c) = sqrt (s * (s - a) * (s - b) * (s - c))
      s = (a + b + c) / 2  
 
 getAreas :: Floating a => [Shape a] -> [a]
-getAreas shapes = map area shapes
+getAreas = map area
 
 maxArea :: (Ord a, Floating a) => [Shape a] -> Shape a
-maxArea shapes = foldl1 (\acc x -> if area x > area acc then x else acc) shapes
+maxArea = foldl1 (\acc x -> if area x > area acc then x else acc)
 
 main::IO()
 main = do
