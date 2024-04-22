@@ -20,8 +20,8 @@ coldestCapital countries = fst $ foldl findColdest initial (tail zipped)
 
     findColdest :: (Name, AvgYearlyTemperature) -> (Name, AvgYearlyTemperature) -> (Name, AvgYearlyTemperature)
     findColdest (coldestCountry, coldestTemp) (country, temp)
-      | temp < coldestTemp = (country, temp)
-      | otherwise = (coldestCountry, coldestTemp)
+     | temp < coldestTemp = (country, temp)
+     | otherwise = (coldestCountry, coldestTemp)
 
 
 main::IO()

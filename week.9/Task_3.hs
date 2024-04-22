@@ -11,11 +11,11 @@ getClosestDistance :: (Floating a, Ord a) => [Point a] -> (a, Point a, Point a)
 getClosestDistance [] = error "List of points cannot be empty"
 getClosestDistance [_] = error "Need at least two points to find closest distance"
 getClosestDistance (p:p2:ps) = foldl findMinDistance (distance p p2, p, p2) pairs
-    where
-        pairs = [(distance p1 p2, p1, p2) | (p1, i1) <- zip (p:p2:ps) [0..], (p2, i2) <- zip (p:p2:ps) [0..], i1 < i2]
-        findMinDistance acc@(minDist, _, _) (dist, p1, p2)
-            | dist < minDist = (dist, p1, p2)
-            | otherwise = acc
+ where
+    pairs = [(distance p1 p2, p1, p2) | (p1, i1) <- zip (p:p2:ps) [0..], (p2, i2) <- zip (p:p2:ps) [0..], i1 < i2]
+    findMinDistance acc@(minDist, _, _) (dist, p1, p2)
+     | dist < minDist = (dist, p1, p2)
+     | otherwise = acc
 
 main::IO()
 main = do
