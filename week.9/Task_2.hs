@@ -8,7 +8,7 @@ data Country = Country Name Capital [City]
 
 coldestCapital :: [Country] -> Name
 coldestCapital countries = fst $ foldl findColdest initial (tail zipped)
-  where
+ where
     getAvgTemp :: [City] -> Double
     getAvgTemp cities = sum (map (\(City _ _ temp) -> temp) cities) / fromIntegral (length cities)
 
