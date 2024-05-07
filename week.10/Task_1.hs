@@ -19,8 +19,8 @@ size :: BTree a -> Int
 size Nil = 0
 size (Node _ left right) = 1 + size left + size right
 
-average :: (Fractional a, Num a) => BTree a -> a
-average tree = sumTree tree / fromIntegral (size tree)
+average :: (Integral a, Fractional b) => BTree a -> b
+average tree = (fromIntegral $ sumTree tree) / fromIntegral (size tree)
 
 sumLeaves :: (Num a) => BTree a -> a
 sumLeaves Nil = 0
