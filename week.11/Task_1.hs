@@ -1,7 +1,7 @@
 import Data.List
 
 myPoly :: [Double] -> (Double -> Int -> Double)
-myPoly xs = \x y -> product (take y [(x - xi) | xi <- xs])
+myPoly xs = (\x y -> product (take y [(x - xi) | xi <- xs]))
 
 main :: IO ()
 main = do
