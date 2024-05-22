@@ -1,107 +1,75 @@
-import Data.List (sortOn)
+import Data.List (sort, groupBy, partition)
 import Data.Char (toLower)
-
-data FileSystem = Directory Name [FileSystem] | File Name Size
-  deriving (Eq, Show)
 
 type Command = String
 type Size = Int
 type Name = String
 
--- Sort directories and files
-sortFileSystem :: [FileSystem] -> [FileSystem]
-sortFileSystem = sortOn getNameCaseInsensitive . sortOn isDirectory
-  where
-    getNameCaseInsensitive fs = map toLower (getName fs)
+data FileSystem = Directory Name [FileSystem] | File Name Size
+    deriving (Eq, Show)
 
-isDirectory :: FileSystem -> Bool
-isDirectory (Directory _ _) = True
-isDirectory _ = False
-
-getName :: FileSystem -> Name
-getName (Directory name _) = name
-getName (File name _) = name
-
--- Generate FileSystem from commands
 generateFileSystem :: [Command] -> FileSystem
-generateFileSystem commands = buildFileSystem (Directory "/" []) commands ["/"]
+generateFileSystem commands = sortFileSystem $ interpretCommands commands []
 
--- Build FileSystem recursively
-buildFileSystem :: FileSystem -> [Command] -> [Name] -> FileSystem
-buildFileSystem fs [] _ = fs
-buildFileSystem fs (cmd:cmds) path
-  | cmd == "$ cd /" = buildFileSystem fs cmds ["/"]
-  | cmd == "$ cd .." = buildFileSystem fs cmds (init path)
-  | take 4 cmd == "$ cd" = buildFileSystem fs cmds (path ++ [drop 5 cmd])
-  | cmd == "$ ls" = let (entries, rest) = span (not . isCommand) cmds
-                    in buildFileSystem (addEntries fs path entries) rest path
-  | otherwise = buildFileSystem fs cmds path
+interpretCommands :: [Command] -> [FileSystem] -> [FileSystem]
+interpretCommands [] fs = fs
+interpretCommands (cmd:cmds) fs
+    | "$ cd" `isPrefixOf` cmd = interpretCommands cmds fs
+    | "dir" `isPrefixOf` cmd = let dirName = drop 4 cmd
+                                    (subCmds, remainingCmds) = splitCommands cmds
+                                    subFs = generateSubFileSystem subCmds
+                                in interpretCommands remainingCmds (Directory dirName subFs : fs)
+    | otherwise = let (fileName, size) = parseFileInfo cmd
+                  in interpretCommands cmds (File fileName size : fs)
 
--- Check if a command is a file/directory entry
+splitCommands :: [Command] -> ([Command], [Command])
+splitCommands = span (not . isCommand)
+
 isCommand :: Command -> Bool
 isCommand ('$':_) = True
-isCommand _       = False
+isCommand _ = False
 
--- Add entries to the current directory in the FileSystem
-addEntries :: FileSystem -> [Name] -> [Command] -> FileSystem
-addEntries fs path entries = foldl (addEntry path) fs entries
+generateSubFileSystem :: [Command] -> [FileSystem]
+generateSubFileSystem = interpretCommands
 
--- Add a single entry to the specified path in the FileSystem
-addEntry :: [Name] -> FileSystem -> Command -> FileSystem
-addEntry [] fs _ = fs
-addEntry ["/"] (Directory name contents) entry = Directory name (sortFileSystem (parseEntry entry : contents))
-addEntry (p:ps) (Directory name contents) entry =
-  Directory name (map update contents)
-  where
-    update dir@(Directory dName _)
-      | dName == p = addEntry ps dir entry
-      | otherwise  = dir
-    update file = file
-addEntry _ fs _ = fs
+parseFileInfo :: Command -> (Name, Size)
+parseFileInfo cmd = let (name, sizeStr) = span (/= ' ') cmd
+                        size = read sizeStr
+                    in (name, size)
 
--- Parse a single entry command
-parseEntry :: Command -> FileSystem
-parseEntry entry
-  | take 3 entry == "dir" = Directory (drop 4 entry) []
-  | otherwise = let (size, name) = span (/= ' ') entry
-                in File (drop 1 name) (read size)
+sortFileSystem :: [FileSystem] -> FileSystem
+sortFileSystem fs = Directory "/" (sortDirectoryContents fs)
 
--- Get the size of the smallest directory containing the file
-getParentSize :: FileSystem -> Name -> Size
-getParentSize fs filename = minimumSize (findContainingDirs fs filename)
+sortDirectoryContents :: [FileSystem] -> [FileSystem]
+sortDirectoryContents fs =
+    let (dirs, files) = partitionDirectoriesAndFiles fs
+        sortedDirs = sortByName dirs
+        sortedFiles = sortByName files
+    in sortedDirs ++ sortedFiles
 
--- Find all directories containing the specified file
-findContainingDirs :: FileSystem -> Name -> [Size]
-findContainingDirs (File _ _) _ = []
-findContainingDirs (Directory _ contents) filename =
-  let subdirSizes = concatMap (`findContainingDirs` filename) contents
-  in if any (`containsFile` filename) contents
-     then directorySize (Directory "" contents) : subdirSizes
-     else subdirSizes
+partitionDirectoriesAndFiles :: [FileSystem] -> ([FileSystem], [FileSystem])
+partitionDirectoriesAndFiles = partition isDirectory
+    where
+        isDirectory (Directory _ _) = True
+        isDirectory _ = False
 
--- Check if a FileSystem contains the file
-containsFile :: FileSystem -> Name -> Bool
-containsFile (File name _) target = name == target
-containsFile (Directory _ contents) target = any (`containsFile` target) contents
-
--- Calculate the total size of a directory
-directorySize :: FileSystem -> Size
-directorySize (File _ size) = size
-directorySize (Directory _ contents) = sum (map directorySize contents)
-
--- Get the minimum size from a list, or -1 if the list is empty
-minimumSize :: [Size] -> Size
-minimumSize [] = -1
-minimumSize sizes = minimum sizes
+sortByName :: [FileSystem] -> [FileSystem]
+sortByName = sortBy (\a b -> compare (lowercaseName a) (lowercaseName b))
+    where
+        lowercaseName (Directory name _) = map toLower name
+        lowercaseName (File name _) = map toLower name
 
 commands :: [Command]
 commands = ["$ cd /","$ ls","dir a","14848514 b.txt","8504156 c.dat","dir d","$ cd a","$ ls","dir e","29116 f","2557 g","62596 h.lst","$ cd e","$ ls","584 i","$ cd ..","$ cd ..","$ cd d","$ ls","4060174 j","8033020 d.log","5626152 d.ext","7214296 k"]
 
+
 main :: IO ()
 main = do
-  let fs = generateFileSystem commands
-  print fs
-  print $ getParentSize fs "i" == 584      -- Should output 584
-  print $ getParentSize fs "g" == 94853    -- Should output 94853
-  print $ getParentSize fs "b.txt" == 48381165  -- Should output 48381165
-  print $ getParentSize fs "abc" == -1     -- Should output -1
+  print $ generateFileSystem commands -- == Directory "/" [Directory "a" [Directory "e" [File "i" 584], File "f" 29116, File "g" 2557, File "h.lst" 62596], Directory "d" [File "d.ext" 5626152, File "d.log" 8033020, File "j" 4060174, File "k" 7214296], File "b.txt" 14848514, File "c.dat" 8504156]
+  {-print $ getParentSize (generateFileSystem commands) "i" == 584
+  print $ getParentSize (generateFileSystem commands) "g" == 94853
+  print $ getParentSize (generateFileSystem commands) "b.txt" == 48381165
+  print $ getParentSize (generateFileSystem commands) "abc" == -1 -}
+
+
+  
