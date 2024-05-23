@@ -1,17 +1,23 @@
 import Data.List
-canPass :: Criterion -> (StudentRecord -> Bool)
-canPass (maxMisses, maxLates) = (\record -> (length (filter (== Absent) record) <= maxMisses) && (length (filter (== Late) record) <= maxLates))
-
 type Misses = Int
 type Lates = Int
 type Criterion = (Misses, Lates)
-
-data Attendance = Absent | Late | Present
- deriving (Eq)
+data Attendance = Absent | Late | Present deriving (Show, Eq)
 type StudentRecord = [Attendance]
+
+maxConsecutiveLates :: StudentRecord -> Int
+maxConsecutiveLates record = maximum (map length (filter (\x -> head x == Late) (group record)))
+
+canPass :: Criterion -> (StudentRecord -> Bool)
+canPass (maxMisses, maxConsecLates) = \record ->
+  let absences = length (filter (== Absent) record)
+      maxLatesInARow = maxConsecutiveLates record
+  in absences <= maxMisses && maxLatesInARow <= maxConsecLates
+
 cP = canPass (1, 2)
-main::IO()
+
+main :: IO ()
 main = do
-    print $ cP [Present, Late, Present, Absent, Present, Present, Present, Absent] == False
-    print $ cP [Present, Late, Present, Late, Present, Late, Present, Absent, Late, Present] == True -- трябва да е False...
-    print $ cP [Present, Late, Present, Late, Late, Late, Present, Present, Absent, Present] == False
+  print $ cP [Present, Late, Present, Absent, Present, Present, Present, Absent] == False
+  print $ cP [Present, Late, Present, Late, Present, Late, Present, Absent, Late, Present] == True
+  print $ cP [Present, Late, Present, Late, Late, Late, Present, Present, Absent, Present] == False
