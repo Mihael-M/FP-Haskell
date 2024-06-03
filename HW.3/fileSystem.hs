@@ -14,9 +14,9 @@ generateFileSystem (cmd:cmds) = fst $ helper (Directory "/" []) ["/"] cmds
     helper :: FileSystem -> [String] -> [Command] -> (FileSystem, [Command])
     helper fs path [] = (fs, [])
     helper fs path (cmd:cmds)
-      | "$ cd " `isPrefixOf` cmd = helper fs (updatePath path (drop 5 cmd)) cmds
-      | "$ ls" `isPrefixOf` cmd = helper fs path cmds
-      | "dir " `isPrefixOf` cmd = helper (addDir fs path dirName) path cmds
+      | isPrefixOf "$ cd " cmd = helper fs (updatePath path (drop 5 cmd)) cmds
+      | isPrefixOf "$ ls" cmd = helper fs path cmds
+      | isPrefixOf "dir " cmd = helper (addDir fs path dirName) path cmds
       | otherwise = helper (addFile fs path fileName fileSize) path cmds
       where
         dirName = drop 4 cmd
@@ -44,13 +44,13 @@ updatePath path ".." = if length path > 1 then init path else path
 updatePath path dir = path ++ [dir]
 
 sortFileSystem :: [FileSystem] -> [FileSystem]
-sortFileSystem = sortBy compareFS
+sortFileSystem = sortOn (\fs -> (isFile fs, map toLower (getName fs)))
+ where
+  isFile (File _ _) = True
+  isFile _ = False
+  getName (Directory name _) = name
+  getName (File name _) = name
 
-compareFS :: FileSystem -> FileSystem -> Ordering
-compareFS (Directory name1 _) (Directory name2 _) = compare (map toLower name1) (map toLower name2)
-compareFS (Directory _ _) (File _ _) = LT
-compareFS (File _ _) (Directory _ _) = GT
-compareFS (File name1 _) (File name2 _) = compare (map toLower name1) (map toLower name2)
 
 -- ///////////////////////////////////////////////////////////// --
 
