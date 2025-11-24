@@ -1,34 +1,56 @@
-square :: Int -> Int
-square num = num * num
 
-myLength :: [Int] -> Int
-myLength [] = 0
-myLength list = 1 + myLength (tail list)
 
-sumList :: [Int] -> Int 
-sumList [] = 0
-sumList list = (head list) + sumList (tail list)
+countAll :: String -> [Int]
+countAll list = (countSmall list) : (countBig list) : (countSymbol list) : []
 
-fib :: Int -> Int
-fib 0 = 0
-fib 1 = 1 
-fib n = fib (n - 1) + fib (n - 2)
+countSmall :: String -> Int
+countSmall [] = 0
+countSmall (x:xs) =
+    if ('a' <= x && x <= 'z') then 1 + countSmall xs
+    else countSmall xs
 
-factorial :: Int -> Int
-factorial 0 = 1
-factorial n = n * factorial(n - 1)
+countBig :: String -> Int
+countBig [] = 0
+countBig (x:xs) =
+    if 'A' <= x && x <= 'Z' then 1 + countBig xs
+    else countBig xs
 
-evens :: [Int] -> [Int]
-evens list = filter even list
+countSymbol :: String -> Int
+countSymbol [] = 0
+countSymbol (x:xs) =
+    if not ('a' <= x && x <= 'z' || 'A' <= x && x <= 'Z') then 1 + countSymbol xs
+    else countSymbol xs
 
-isPalindrome :: Eq a => [a] -> Bool
-isPalindrome list = list == reverse(list)
+br :: String -> Int
+br [] = 0
+br (x:xs) =
+    if '0' <= x && x <= '9' then 1 + br xs
+    else br xs 
+
+lockMirror :: String -> String
+lockMirror x =
+    if not (lockChar x) || not(length x == 4) then "Invalid code"
+    else if x == reverse x then "Unlock"
+    else "Not unlock"
+
+     
+lockChar :: String -> Bool
+lockChar [] = True
+lockChar (x:xs) =
+    if '0' <= x && x <= '9' then True && (lockChar xs)
+    else False
 
 main::IO()
 main = do
-    print(myLength [1, 2, 3])
-    print(sumList [1, 2, 3])
-    print(fib 10)
-    print(factorial 4)
-    print(evens [2, 3, 4])
-    print(isPalindrome [4, 2, 4])
+    -- input <- getLine
+    -- let n = input
+   
+    -- print(countSmall n)
+    -- print(countBig n)
+    -- print(countSymbol n)
+
+    -- print(br "He11o")
+    print(lockMirror "1281")
+
+
+    
